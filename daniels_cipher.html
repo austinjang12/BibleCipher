@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daniel's Cipher — The Writing on the Wall</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;800&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c8922a;
+    --gold-light: #f0c060;
+    --gold-dark: #7a5010;
+    --stone: #2a1f10;
+    --stone2: #1a1208;
+    --stone3: #3a2d1a;
+    --parchment: #f5e8c0;
+    --parchment2: #e8d498;
+    --red-fire: #c03010;
+    --fire2: #e85520;
+    --fire3: #f0a020;
+    --ink: #1a0e04;
+    --glow: rgba(200,146,42,0.3);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IM Fell English', serif;
+    background: var(--stone2);
+    color: var(--parchment);
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(0,0,0,0.08) 40px, rgba(0,0,0,0.08) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(0,0,0,0.05) 60px, rgba(0,0,0,0.05) 61px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .torch-left, .torch-right {
+    position: fixed;
+    top: 0;
+    width: 220px;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .torch-left { left: 0; background: radial-gradient(ellipse at left center, rgba(240,160,30,0.18) 0%, transparent 70%); }
+  .torch-right { right: 0; background: radial-gradient(ellipse at right center, rgba(240,160,30,0.18) 0%, transparent 70%); }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 20px 24px 60px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    padding: 32px 0 20px;
+    border-bottom: 2px solid var(--gold-dark);
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .header::before, .header::after {
+    content: '𒀭';
+    font-size: 28px;
+    color: var(--gold-dark);
+    position: absolute;
+    top: 36px;
+  }
+  .header::before { left: 0; }
+  .header::after { right: 0; }
+
+  .title-main {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(200,146,42,0.5), 0 2px 4px rgba(0,0,0,0.8);
+    line-height: 1.2;
+  }
+  .title-sub {
+    font-family: 'IM Fell English', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--gold);
+    margin-top: 6px;
+    opacity: 0.8;
+  }
+  .verse-ref {
+    font-size: 12px;
+    color: var(--gold-dark);
+    margin-top: 4px;
+    letter-spacing: 1px;
+    font-family: 'Cinzel', serif;
+  }
+
+  /* SCREENS */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* STONE PANELS */
+  .stone-panel {
+    background: linear-gradient(160deg, var(--stone3) 0%, var(--stone) 100%);
+    border: 1px solid var(--gold-dark);
+    border-radius: 4px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .stone-panel::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(200,146,42,0.15);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .panel-title {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel-title::before, .panel-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold-dark));
+  }
+  .panel-title::after { background: linear-gradient(90deg, var(--gold-dark), transparent); }
+
+  /* BUTTONS */
+  .btn {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 12px 28px;
+    border: 1px solid var(--gold-dark);
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    display: inline-block;
+  }
+  .btn-primary {
+    background: linear-gradient(180deg, #c8922a 0%, #7a5010 100%);
+    color: var(--stone2);
+    box-shadow: 0 2px 12px rgba(200,146,42,0.3);
+  }
+  .btn-primary:hover { background: linear-gradient(180deg, #f0c060 0%, #c8922a 100%); transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--gold);
+    border-color: var(--gold-dark);
+  }
+  .btn-secondary:hover { background: rgba(200,146,42,0.1); }
+  .btn-danger {
+    background: linear-gradient(180deg, #c03010 0%, #7a1a08 100%);
+    color: var(--parchment);
+    border-color: #7a1a08;
+  }
+  .btn-danger:hover { background: linear-gradient(180deg, #e85520 0%, #c03010 100%); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* INPUTS */
+  input[type="text"] {
+    font-family: 'IM Fell English', serif;
+    font-size: 16px;
+    background: var(--stone2);
+    color: var(--parchment);
+    border: 1px solid var(--gold-dark);
+    border-radius: 2px;
+    padding: 10px 14px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--gold); box-shadow: 0 0 8px rgba(200,146,42,0.2); }
+  input[type="text"]::placeholder { color: rgba(200,146,42,0.3); font-style: italic; }
+
+  /* PLAYER SETUP */
+  .player-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .player-number {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    color: var(--gold);
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .remove-player {
+    background: none;
+    border: 1px solid var(--gold-dark);
+    color: var(--red-fire);
+    width: 30px;
+    height: 36px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 16px;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .remove-player:hover { background: rgba(192,48,16,0.2); }
+
+  .add-player-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* CIPHER DISPLAY */
+  .cipher-block {
+    background: var(--stone2);
+    border: 1px solid var(--gold-dark);
+    border-radius: 3px;
+    padding: 20px;
+    text-align: center;
+    margin: 16px 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .cipher-block::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(200,146,42,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cipher-text {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(18px, 4vw, 30px);
+    color: var(--gold-light);
+    letter-spacing: 8px;
+    word-break: break-all;
+    text-shadow: 0 0 10px rgba(200,146,42,0.4);
+    line-height: 1.6;
+  }
+  .cipher-label {
+    font-size: 11px;
+    color: var(--gold-dark);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: 'Cinzel', serif;
+    margin-bottom: 10px;
+  }
+
+  /* HINT SECTION */
+  .hint-box {
+    background: rgba(200,146,42,0.06);
+    border: 1px solid rgba(200,146,42,0.2);
+    border-radius: 3px;
+    padding: 14px 18px;
+    margin: 12px 0;
+  }
+  .hint-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    color: var(--gold-dark);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .hint-text {
+    font-style: italic;
+    color: var(--parchment2);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* ROUND / PLAYER INFO */
+  .round-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .round-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    background: rgba(200,146,42,0.08);
+    border: 1px solid var(--gold-dark);
+    border-radius: 2px;
+    padding: 5px 12px;
+  }
+  .round-dots {
+    display: flex;
+    gap: 6px;
+  }
+  .round-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1px solid var(--gold-dark);
+    background: transparent;
+    transition: background 0.3s;
+  }
+  .round-dot.filled { background: var(--gold); box-shadow: 0 0 4px var(--gold); }
+
+  /* CURRENT PLAYER */
+  .current-player-banner {
+    text-align: center;
+    padding: 14px;
+    border: 1px solid var(--gold);
+    background: rgba(200,146,42,0.08);
+    border-radius: 3px;
+    margin-bottom: 18px;
+  }
+  .current-player-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    text-shadow: 0 0 12px rgba(200,146,42,0.4);
+  }
+  .current-player-label {
+    font-size: 12px;
+    color: var(--gold-dark);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: 'Cinzel', serif;
+    margin-top: 3px;
+  }
+
+  /* ANSWER */
+  .answer-area {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .answer-area input { flex: 1; }
+
+  /* FEEDBACK */
+  .feedback-panel {
+    text-align: center;
+    padding: 22px;
+    border-radius: 3px;
+    margin: 14px 0;
+    animation: fadeIn 0.3s ease;
+  }
+  .feedback-correct {
+    background: rgba(30,120,60,0.15);
+    border: 1px solid rgba(40,160,80,0.4);
+  }
+  .feedback-wrong {
+    background: rgba(192,48,16,0.1);
+    border: 1px solid rgba(192,48,16,0.3);
+  }
+  .feedback-icon { font-size: 36px; margin-bottom: 8px; }
+  .feedback-msg {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .feedback-correct .feedback-msg { color: #5dcc7a; }
+  .feedback-wrong .feedback-msg { color: var(--fire2); }
+  .feedback-word {
+    font-size: 13px;
+    color: var(--parchment2);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .points-earned {
+    font-family: 'Cinzel', serif;
+    font-size: 20px;
+    color: var(--gold-light);
+    margin-top: 8px;
+  }
+
+  /* SCOREBOARD */
+  .score-table { width: 100%; border-collapse: collapse; }
+  .score-table th {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--gold-dark);
+    text-align: left;
+  }
+  .score-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(200,146,42,0.08);
+    font-size: 15px;
+  }
+  .score-table tr:last-child td { border-bottom: none; }
+  .score-rank {
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    color: var(--gold-dark);
+    font-weight: 600;
+  }
+  .score-name { color: var(--parchment); }
+  .score-pts {
+    font-family: 'Cinzel', serif;
+    font-size: 17px;
+    color: var(--gold-light);
+    font-weight: 600;
+    text-align: right;
+  }
+  .score-row-1 { background: rgba(200,146,42,0.12); }
+  .score-row-2 { background: rgba(200,146,42,0.06); }
+
+  /* WINNER SCREEN */
+  .winner-crown {
+    font-size: 52px;
+    text-align: center;
+    margin-bottom: 10px;
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+  .winner-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(24px, 6vw, 44px);
+    color: var(--gold-light);
+    text-align: center;
+    text-shadow: 0 0 20px rgba(200,146,42,0.6);
+    margin-bottom: 6px;
+  }
+  .winner-label {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  /* TURN QUEUE */
+  .turn-queue {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .turn-chip {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 2px;
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-dark);
+    background: transparent;
+    transition: all 0.2s;
+  }
+  .turn-chip.current {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(200,146,42,0.15);
+  }
+  .turn-chip.done { opacity: 0.35; text-decoration: line-through; }
+
+  /* CIPHER KEY LEGEND */
+  .key-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .key-chip {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    padding: 3px 8px;
+    background: rgba(200,146,42,0.08);
+    border: 1px solid rgba(200,146,42,0.2);
+    border-radius: 2px;
+    color: var(--gold-dark);
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes glow-pulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(200,146,42,0.5); }
+    50% { text-shadow: 0 0 40px rgba(200,146,42,0.9), 0 0 60px rgba(200,146,42,0.4); }
+  }
+  @keyframes flicker {
+    0%, 100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: 0.85; } 95% { opacity: 1; } 97% { opacity: 0.9; }
+  }
+
+  .flicker { animation: flicker 4s ease-in-out infinite; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--gold-dark);
+    margin: 20px 0;
+    opacity: 0.4;
+  }
+
+  .text-center { text-align: center; }
+  .mt-16 { margin-top: 16px; }
+  .mt-20 { margin-top: 20px; }
+  .flex-center { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+  .small-note {
+    font-size: 12px;
+    color: var(--gold-dark);
+    font-style: italic;
+    text-align: center;
+    margin-top: 8px;
+  }
+
+  .answer-revealed {
+    font-family: 'Cinzel', serif;
+    font-size: 18px;
+    color: var(--gold-light);
+    text-align: center;
+    padding: 10px;
+    letter-spacing: 3px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--stone2); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="torch-left"></div>
+<div class="torch-right"></div>
+
+<div class="container">
+  <div class="header">
+    <div class="title-main flicker">Daniel's Cipher</div>
+    <div class="title-sub">The Writing on the Wall</div>
+    <div class="verse-ref">Daniel 5:5 — "In the same hour came forth fingers of a man's hand..."</div>
+  </div>
+
+  <!-- ===== SCREEN: PLAYER SETUP ===== -->
+  <div id="screen-setup" class="screen active">
+    <div class="stone-panel">
+      <div class="panel-title">Enter the Scribes</div>
+      <p style="font-style:italic; color:var(--parchment2); font-size:15px; margin-bottom:18px; text-align:center;">
+        Type each player's name below. Up to 8 scribes may attempt to decode the sacred inscriptions.
+      </p>
+      <div id="player-inputs"></div>
+      <div class="add-player-row">
+        <button class="btn btn-secondary" onclick="addPlayerField()">+ Add Scribe</button>
+        <button class="btn btn-danger" onclick="removeLastPlayer()">− Remove Last</button>
+      </div>
+    </div>
+    <div class="stone-panel">
+      <div class="panel-title">Sacred Rules</div>
+      <div style="color:var(--parchment2); font-size:14px; line-height:1.9;">
+        ✦ Each word is encoded in a different secret cipher — no two are alike.<br>
+        ✦ Every player gets a turn before anyone plays again.<br>
+        ✦ Three full rounds are played, then the champion is revealed.<br>
+        ✦ Guess correctly on the first try: <span style="color:var(--gold)">3 points</span>. Second try: <span style="color:var(--gold)">1 point</span>.<br>
+        ✦ Answers are not case-sensitive.
+      </div>
+    </div>
+    <div class="flex-center mt-20">
+      <button class="btn btn-primary" onclick="startGame()">Begin the Trial</button>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: GAMEPLAY ===== -->
+  <div id="screen-game" class="screen">
+    <div class="round-bar">
+      <div class="round-badge" id="round-label">Round 1 of 3</div>
+      <div class="round-dots" id="round-dots"></div>
+    </div>
+
+    <div class="current-player-banner">
+      <div class="current-player-label">Now deciphering</div>
+      <div class="current-player-name" id="current-player-name">—</div>
+    </div>
+
+    <!-- Turn queue -->
+    <div class="stone-panel" style="padding:14px 18px;">
+      <div class="panel-title" style="margin-bottom:10px;">Order of Scribes</div>
+      <div class="turn-queue" id="turn-queue"></div>
+    </div>
+
+    <!-- Cipher -->
+    <div class="stone-panel">
+      <div class="panel-title">The Sacred Inscription</div>
+      <div class="cipher-label">Decode this message</div>
+      <div class="cipher-block">
+        <div class="cipher-text" id="cipher-display">—</div>
+      </div>
+
+      <!-- Cipher key hint -->
+      <div class="hint-box" id="cipher-key-box">
+        <div class="hint-label">Cipher Type</div>
+        <div class="hint-text" id="cipher-type-hint">—</div>
+      </div>
+
+      <!-- Biblical hint -->
+      <div class="hint-box">
+        <div class="hint-label">📜 Scroll Hint</div>
+        <div class="hint-text" id="hint-text">—</div>
+      </div>
+
+      <!-- Answer area -->
+      <div id="answer-section">
+        <div class="answer-area">
+          <input type="text" id="answer-input" placeholder="Write thine interpretation..." autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter') submitAnswer()"/>
+          <button class="btn btn-primary" id="submit-btn" onclick="submitAnswer()">Submit</button>
+        </div>
+        <div class="small-note" id="attempt-note">First attempt — 3 points available</div>
+      </div>
+
+      <!-- Feedback -->
+      <div id="feedback-area" style="display:none;"></div>
+
+      <!-- Next player button -->
+      <div class="flex-center mt-16" id="next-btn-area" style="display:none;">
+        <button class="btn btn-primary" id="next-btn" onclick="nextTurn()">Next Scribe →</button>
+      </div>
+    </div>
+
+    <!-- Live scoreboard -->
+    <div class="stone-panel">
+      <div class="panel-title">Tablet of Scores</div>
+      <table class="score-table" id="live-scoreboard"></table>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: ROUND END ===== -->
+  <div id="screen-round-end" class="screen">
+    <div class="stone-panel text-center">
+      <div style="font-family:'Cinzel Decorative',serif; font-size:28px; color:var(--gold-light); margin-bottom:6px;" id="round-end-title">Round Complete</div>
+      <div style="font-style:italic; color:var(--parchment2); font-size:14px; margin-bottom:20px;" id="round-end-sub">—</div>
+      <table class="score-table" id="round-scoreboard"></table>
+      <div class="flex-center mt-20">
+        <button class="btn btn-primary" id="round-next-btn" onclick="startNextRound()">—</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: FINAL ===== -->
+  <div id="screen-final" class="screen">
+    <div class="stone-panel">
+      <div class="winner-crown">👑</div>
+      <div class="winner-name" id="winner-name">—</div>
+      <div class="winner-label">Champion of the Cipher</div>
+      <table class="score-table" id="final-scoreboard"></table>
+      <hr class="divider">
+      <div style="font-style:italic; color:var(--parchment2); font-size:14px; text-align:center; line-height:1.7;" id="final-verse">—</div>
+      <div class="flex-center mt-20">
+        <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+//  WORD BANK — Biblical terms with hints
+// =====================================================================
+const WORD_BANK = [
+  { word: "BELSHAZZAR", hint: "The Babylonian king who saw the mysterious writing appear on the wall during a great feast.", ref: "Daniel 5:1-6" },
+  { word: "MENE",       hint: "Part of the message written on the wall that meant God had numbered the king's days.", ref: "Daniel 5:26" },
+  { word: "TEKEL",      hint: "The word in the inscription meaning the king had been weighed and found lacking.", ref: "Daniel 5:27" },
+  { word: "UPHARSIN",   hint: "The final word of the writing that foretold the kingdom would be divided.", ref: "Daniel 5:28" },
+  { word: "VESSELS",    hint: "Holy items taken from God's temple that Belshazzar used disrespectfully at his feast.", ref: "Daniel 5:2-3" },
+ { word: "INTERPRET",  hint: "What Daniel was able to do with the mysterious writing when no wise men could.", ref: "Daniel 5:16" },
+ { word: "PRIDE",      hint: "The sinful attitude that led both Nebuchadnezzar and Belshazzar away from honoring God.", ref: "Daniel 5:20-23" },
+ { word: "HUMILITY",   hint: "The attitude God desires instead of pride and boasting.", ref: "Matthew 23:12" },
+ { word: "BABYLON",    hint: "The mighty kingdom that fell on the very night of the writing on the wall.", ref: "Daniel 5:30" },
+ { word: "PERSIANS",   hint: "The people who conquered Babylon after the prophecy was fulfilled.", ref: "Daniel 5:28-31" },
+ { word: "FAITHFUL",   hint: "Daniel remained this way to God even while serving foreign kings.", ref: "Daniel 6:4" },
+ { word: "WISDOM",     hint: "A gift from God that allowed Daniel to understand mysteries and solve difficult problems.", ref: "Daniel 5:11-12" },
+ { word: "KINGDOM",    hint: "The realm that God declared would be taken away from Belshazzar.", ref: "Daniel 5:28" },
+ { word: "TEMPLE",     hint: "The holy place from which the sacred gold vessels had been taken.", ref: "Daniel 5:2" },
+ { word: "HONOR",      hint: "What Belshazzar failed to give to God despite all God had provided.", ref: "Daniel 5:23" },
+ { word: "MEDES",      hint: "The nation mentioned alongside the Persians in Daniel's interpretation.", ref: "Daniel 5:28" },
+ { word: "PROPHET",    hint: "Daniel served as this by delivering God's message to kings.", ref: "Daniel 5:13-28" },
+ { word: "FEAST",      hint: "The large celebration taking place when the mysterious hand appeared.", ref: "Daniel 5:1" },
+ { word: "IDOLS",      hint: "False gods praised by Belshazzar during the banquet.", ref: "Daniel 5:4" },
+ { word: "REPENT",     hint: "What proud rulers failed to truly do before God's judgment came.", ref: "Daniel 5:22" },
+ { word: "BANQUET",    hint: "The royal celebration where Belshazzar and his guests drank wine from sacred vessels.", ref: "Daniel 5:1-3" },
+{ word: "JUDGMENT",   hint: "What God declared against Belshazzar through the writing on the wall.", ref: "Daniel 5:26-28" },
+{ word: "MYSTERY",    hint: "The strange message on the wall was this until Daniel explained it.", ref: "Daniel 5:7-8" },
+{ word: "REBUKE",     hint: "Daniel gave this stern correction to the proud king.", ref: "Daniel 5:22-23" },
+{ word: "TREMBLE",    hint: "Belshazzar began to do this when he saw the human hand writing on the wall.", ref: "Daniel 5:6" },
+{ word: "DIVIDED",    hint: "The message declared that the kingdom would be split and given to others.", ref: "Daniel 5:28" },
+{ word: "WEIGHED",    hint: "Daniel said the king had been this in God's balances and found lacking.", ref: "Daniel 5:27" },
+{ word: "NUMBERED",   hint: "The word MENE revealed that the king's days had been counted by God.", ref: "Daniel 5:26" },
+{ word: "GLORIFY",    hint: "The lesson teaches that our lives should do this for God.", ref: "Matthew 5:16" },
+{ word: "BOAST",      hint: "The Bible warns believers not to do this proudly about accomplishments.", ref: "Ephesians 2:8-9" },
+{ word: "SACRED",     hint: "The vessels from the temple were holy and treated as this.", ref: "Daniel 5:3" },
+{ word: "OBEDIENCE",  hint: "Daniel and his friends showed this by remaining loyal to God.", ref: "Daniel 1:8" },
+{ word: "HOLINESS",   hint: "God desires His people and His house to reflect this quality.", ref: "1 Corinthians 6:19" },
+{ word: "ASTROLOGERS",hint: "These royal advisors failed to understand the writing on the wall.", ref: "Daniel 5:7-8" },
+{ word: "MAGICIANS",  hint: "The king summoned these wise men, but none could interpret the message.", ref: "Daniel 5:7" },
+{ word: "UNDERSTANDING", hint: "Daniel was known for having wisdom and this gift from God.", ref: "Daniel 5:11-12" },
+{ word: "TEMPTATION", hint: "Pride and dishonor toward God can lead believers into this danger.", ref: "Daniel 5:20" },
+{ word: "RESPECT",    hint: "The lesson emphasizes showing this toward God, His house, and holy things.", ref: "Daniel 5:23" },
+{ word: "CONQUERED",  hint: "Babylon was this by the Medes and Persians after the prophecy.", ref: "Daniel 5:30-31" },
+{ word: "PROCLAMATION", hint: "Belshazzar made this after rewarding Daniel before Babylon fell.", ref: "Daniel 5:29" },
+];
+
+// =====================================================================
+//  CIPHER ENGINE — many different ciphers, randomly selected per word
+// =====================================================================
+
+// --- Individual cipher functions ---
+const CIPHERS = [
+  {
+    name: "Ancient Shift (Caesar)",
+    describe: (k) => `Each letter has been shifted forward ${k} positions in the alphabet. Count back ${k} to decode.`,
+    encode: (word, k) => word.split('').map(c => {
+      if (c < 'A' || c > 'Z') return c;
+      return String.fromCharCode(((c.charCodeAt(0) - 65 + k) % 26) + 65);
+    }).join(''),
+    genKey: () => 2 + Math.floor(Math.random() * 20),
+  },
+  {
+    name: "Mirror Script (Atbash)",
+    describe: () => `Letters have been mirrored: A↔Z, B↔Y, C↔X… Reverse the alphabet to decode each letter.`,
+    encode: (word) => word.split('').map(c => {
+      if (c < 'A' || c > 'Z') return c;
+      return String.fromCharCode(90 - (c.charCodeAt(0) - 65));
+    }).join(''),
+    genKey: () => 0,
+  },
+  {
+    name: "Royal Skip Cipher",
+    describe: (k) => `Each letter is shifted by ${k} positions. Count ${k} letters backward in the alphabet.`,
+    encode: (word, k) => word.split('').map(c => {
+      if (c < 'A' || c > 'Z') return c;
+      return String.fromCharCode(((c.charCodeAt(0) - 65 + k) % 26) + 65);
+    }).join(''),
+    genKey: () => [3,5,7,9,11,13][Math.floor(Math.random()*6)],
+  },
+  {
+    name: "Babylonian Number Code",
+    describe: () => `Letters have been replaced by numbers (A=1, B=2, … Z=26). Find the matching letter for each number.`,
+    encode: (word) => word.split('').map(c => {
+      if (c < 'A' || c > 'Z') return c;
+      return String(c.charCodeAt(0) - 64);
+    }).join('-'),
+    genKey: () => 0,
+  },
+  {
+    name: "Reversed Inscription",
+    describe: () => `The entire word has been written backward, as if read in a mirror. Reverse all the letters.`,
+    encode: (word) => word.split('').reverse().join(''),
+    genKey: () => 0,
+  },
+  {
+    name: "Medo-Persian Skip",
+    describe: (k) => `Every letter jumps forward ${k} positions. Subtract ${k} from each letter's position to find the original.`,
+    encode: (word, k) => word.split('').map(c => {
+      if (c < 'A' || c > 'Z') return c;
+      return String.fromCharCode(((c.charCodeAt(0) - 65 + k) % 26) + 65);
+    }).join(''),
+    genKey: () => [4,6,8,10,12,15,17][Math.floor(Math.random()*7)],
+  },
+  {
+    name: "Vowel Banishment",
+    describe: () => `All vowels (A, E, I, O, U) have been removed. Fill in the missing vowels to restore the sacred word.`,
+    encode: (word) => word.replace(/[AEIOU]/g, '_'),
+    genKey: () => 0,
+  },
+  {
+    name: "Consonant Banishment",
+    describe: () => `All consonants have been removed, leaving only vowels. Fill in the missing consonants.`,
+    encode: (word) => word.replace(/[BCDFGHJKLMNPQRSTVWXYZ]/g, '_'),
+    genKey: () => 0,
+  },
+  {
+    name: "The Scribe's Jumble",
+    describe: () => `The letters have been scrambled — rearrange them to form the hidden word. (Tip: look at the hint!)`,
+    encode: (word) => {
+      let arr = word.split('');
+      // Fisher-Yates but ensure it's actually different
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      // If same as original, swap first two
+      if (arr.join('') === word && arr.length > 1) [arr[0], arr[1]] = [arr[1], arr[0]];
+      return arr.join('');
+    },
+    genKey: () => 0,
+  },
+  {
+    name: "Even-Letter Cipher",
+    describe: () => `Only the letters at ODD positions (1st, 3rd, 5th...) are shown. Every other letter is hidden with a ★.`,
+    encode: (word) => word.split('').map((c, i) => i % 2 === 0 ? c : '★').join(''),
+    genKey: () => 0,
+  },
+];
+
+// =====================================================================
+//  GAME STATE
+// =====================================================================
+let players = [];
+let scores = {};
+let roundNumber = 1;
+const MAX_ROUNDS = 3;
+let turnOrder = []; // player names in current round order
+let turnIndex = 0;
+let usedWords = new Set();
+let currentWordObj = null;
+let currentCipher = null;
+let currentCipherKey = 0;
+let currentEncodedWord = '';
+let attempts = 0; // per turn, max 2
+
+// =====================================================================
+//  SETUP SCREEN
+// =====================================================================
+function addPlayerField(name = '') {
+  const container = document.getElementById('player-inputs');
+  if (container.children.length >= 8) return;
+  const idx = container.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'player-row';
+  row.innerHTML = `
+    <span class="player-number">Scribe ${idx}</span>
+    <input type="text" placeholder="Enter name…" maxlength="20" value="${name}" />
+    <button class="remove-player" onclick="this.parentElement.remove(); renumberPlayers()">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeLastPlayer() {
+  const container = document.getElementById('player-inputs');
+  if (container.children.length > 1) container.removeChild(container.lastChild);
+}
+
+function renumberPlayers() {
+  document.querySelectorAll('.player-number').forEach((el, i) => el.textContent = `Scribe ${i+1}`);
+}
+
+function startGame() {
+  const inputs = document.querySelectorAll('#player-inputs input[type="text"]');
+  players = [];
+  inputs.forEach(inp => {
+    const n = inp.value.trim();
+    if (n) players.push(n);
+  });
+  if (players.length < 1) { alert('At least one scribe must enter their name!'); return; }
+
+  // Deduplicate names
+  players = [...new Set(players)];
+  scores = {};
+  players.forEach(p => scores[p] = 0);
+  roundNumber = 1;
+  usedWords = new Set();
+
+  startRound();
+}
+
+// =====================================================================
+//  ROUND MANAGEMENT
+// =====================================================================
+function startRound() {
+  turnOrder = [...players];
+  // Shuffle turn order for freshness each round
+  for (let i = turnOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [turnOrder[i], turnOrder[j]] = [turnOrder[j], turnOrder[i]];
+  }
+  turnIndex = 0;
+
+  showScreen('screen-game');
+  updateRoundBar();
+  startTurn();
+}
+
+function updateRoundBar() {
+  document.getElementById('round-label').textContent = `Round ${roundNumber} of ${MAX_ROUNDS}`;
+  const dots = document.getElementById('round-dots');
+  dots.innerHTML = '';
+  for (let i = 1; i <= MAX_ROUNDS; i++) {
+    const d = document.createElement('div');
+    d.className = 'round-dot' + (i <= roundNumber ? ' filled' : '');
+    dots.appendChild(d);
+  }
+}
+
+function startTurn() {
+  attempts = 0;
+  const player = turnOrder[turnIndex];
+
+  document.getElementById('current-player-name').textContent = player;
+
+  // Pick a word not yet used
+  const available = WORD_BANK.filter(w => !usedWords.has(w.word));
+  if (available.length === 0) usedWords.clear(); // reset if exhausted
+  const available2 = WORD_BANK.filter(w => !usedWords.has(w.word));
+  currentWordObj = available2[Math.floor(Math.random() * available2.length)];
+  usedWords.add(currentWordObj.word);
+
+  // Pick a cipher
+  currentCipher = CIPHERS[Math.floor(Math.random() * CIPHERS.length)];
+  currentCipherKey = currentCipher.genKey();
+  currentEncodedWord = currentCipher.encode(currentWordObj.word, currentCipherKey);
+
+  // Display
+  document.getElementById('cipher-display').textContent = currentEncodedWord;
+  document.getElementById('cipher-type-hint').textContent =
+    currentCipher.describe ? currentCipher.describe(currentCipherKey) : currentCipher.name;
+  document.getElementById('hint-text').textContent =
+    currentWordObj.hint + ' (' + currentWordObj.ref + ')';
+
+  // Reset answer area
+  document.getElementById('answer-section').style.display = '';
+  document.getElementById('answer-input').value = '';
+  document.getElementById('attempt-note').textContent = 'First attempt — 3 points available';
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('feedback-area').style.display = 'none';
+  document.getElementById('feedback-area').innerHTML = '';
+  document.getElementById('next-btn-area').style.display = 'none';
+
+  updateTurnQueue();
+  updateScoreboard('live-scoreboard');
+
+  setTimeout(() => document.getElementById('answer-input').focus(), 50);
+}
+
+function updateTurnQueue() {
+  const q = document.getElementById('turn-queue');
+  q.innerHTML = '';
+  turnOrder.forEach((p, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'turn-chip' +
+      (i === turnIndex ? ' current' : '') +
+      (i < turnIndex ? ' done' : '');
+    chip.textContent = p;
+    q.appendChild(chip);
+  });
+}
+
+function submitAnswer() {
+  const input = document.getElementById('answer-input');
+  const answer = input.value.trim().toUpperCase();
+  if (!answer) return;
+
+  attempts++;
+  const correct = answer === currentWordObj.word.toUpperCase();
+
+  const feedbackArea = document.getElementById('feedback-area');
+  feedbackArea.style.display = '';
+  feedbackArea.innerHTML = '';
+
+  if (correct) {
+    const pts = attempts === 1 ? 3 : 1;
+    scores[turnOrder[turnIndex]] += pts;
+    feedbackArea.innerHTML = `
+      <div class="feedback-panel feedback-correct">
+        <div class="feedback-icon">✨</div>
+        <div class="feedback-msg">Thus it is written — Correct!</div>
+        <div class="feedback-word">The word was: <strong>${currentWordObj.word}</strong></div>
+        <div class="points-earned">+${pts} point${pts > 1 ? 's' : ''}</div>
+      </div>`;
+    document.getElementById('answer-section').style.display = 'none';
+    showNextButton();
+  } else if (attempts >= 2) {
+    feedbackArea.innerHTML = `
+      <div class="feedback-panel feedback-wrong">
+        <div class="feedback-icon">🔥</div>
+        <div class="feedback-msg">The inscription remains sealed…</div>
+        <div class="feedback-word">The hidden word was: <strong>${currentWordObj.word}</strong></div>
+        <div class="points-earned" style="color:var(--fire2);">+0 points</div>
+      </div>`;
+    document.getElementById('answer-section').style.display = 'none';
+    showNextButton();
+  } else {
+    feedbackArea.innerHTML = `
+      <div class="feedback-panel feedback-wrong">
+        <div class="feedback-icon">⚖</div>
+        <div class="feedback-msg">Not quite — try once more!</div>
+        <div class="feedback-word">One attempt remaining — 1 point available</div>
+      </div>`;
+    document.getElementById('attempt-note').textContent = 'Second (final) attempt — 1 point available';
+    input.value = '';
+    setTimeout(() => input.focus(), 50);
+  }
+  updateScoreboard('live-scoreboard');
+}
+
+function showNextButton() {
+  const area = document.getElementById('next-btn-area');
+  area.style.display = '';
+  const btn = document.getElementById('next-btn');
+
+  const isLastInRound = turnIndex >= turnOrder.length - 1;
+  const isLastRound = roundNumber >= MAX_ROUNDS;
+
+  if (isLastInRound && isLastRound) {
+    btn.textContent = 'Reveal the Champion ⚖';
+  } else if (isLastInRound) {
+    btn.textContent = `End Round ${roundNumber} →`;
+  } else {
+    btn.textContent = `Next Scribe →`;
+  }
+}
+
+function nextTurn() {
+  turnIndex++;
+  if (turnIndex >= turnOrder.length) {
+    // Round over
+    endRound();
+  } else {
+    startTurn();
+  }
+}
+
+// =====================================================================
+//  ROUND END
+// =====================================================================
+function endRound() {
+  showScreen('screen-round-end');
+  const title = document.getElementById('round-end-title');
+  const sub = document.getElementById('round-end-sub');
+  const btn = document.getElementById('round-next-btn');
+
+  if (roundNumber >= MAX_ROUNDS) {
+    title.textContent = 'Final Round Complete!';
+    sub.textContent = 'The scribes have finished — let us consult the tablets…';
+    btn.textContent = 'Reveal the Champion';
+    btn.onclick = showFinalResults;
+  } else {
+    title.textContent = `Round ${roundNumber} Complete`;
+    sub.textContent = 'The scribes rest before the next inscription appears…';
+    btn.textContent = `Begin Round ${roundNumber + 1}`;
+    btn.onclick = startNextRound;
+  }
+
+  updateScoreboard('round-scoreboard');
+}
+
+function startNextRound() {
+  roundNumber++;
+  startRound();
+}
+
+// =====================================================================
+//  FINAL RESULTS
+// =====================================================================
+function showFinalResults() {
+  showScreen('screen-final');
+
+  const sorted = [...players].sort((a, b) => scores[b] - scores[a]);
+  const winner = sorted[0];
+
+  document.getElementById('winner-name').textContent = winner;
+  updateScoreboard('final-scoreboard');
+
+  const verses = [
+    '"Then Daniel answered with counsel and wisdom." — Daniel 2:14',
+    '"My God hath sent his angel, and hath shut the lions\' mouths." — Daniel 6:22',
+    '"They trusted in him, and changed the king\'s word." — Daniel 3:28',
+    '"The God of heaven hath given thee a kingdom, power, and strength." — Daniel 2:37',
+    '"The writing is written: MENE, MENE, TEKEL, UPHARSIN." — Daniel 5:25',
+  ];
+  document.getElementById('final-verse').textContent =
+    verses[Math.floor(Math.random() * verses.length)];
+}
+
+// =====================================================================
+//  SCOREBOARD RENDERER
+// =====================================================================
+function updateScoreboard(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  const sorted = [...players].sort((a, b) => scores[b] - scores[a]);
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>#</th><th>Scribe</th><th style="text-align:right;">Points</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${sorted.map((p, i) => `
+        <tr class="${i === 0 ? 'score-row-1' : i === 1 ? 'score-row-2' : ''}">
+          <td class="score-rank">${['I','II','III','IV','V','VI','VII','VIII'][i]}</td>
+          <td class="score-name">${p}</td>
+          <td class="score-pts">${scores[p]}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+}
+
+// =====================================================================
+//  UTILS
+// =====================================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetGame() {
+  showScreen('screen-setup');
+  // Rebuild player inputs with remembered names
+  const container = document.getElementById('player-inputs');
+  container.innerHTML = '';
+  players.forEach(p => addPlayerField(p));
+  if (players.length === 0) addPlayerField();
+}
+
+// =====================================================================
+//  INIT
+// =====================================================================
+(function init() {
+  // Start with 3 blank fields
+  addPlayerField();
+  addPlayerField();
+  addPlayerField();
+})();
+</script>
+</body>
+</html>
